@@ -339,6 +339,15 @@ void maxUnpoolShapeInference(InferenceContext& ctx) {
     fail_shape_inference("Attribute kernel_shape must be specified.");
   }
 
+  std::vector<int64_t> output_padding;
+  if (getRepeatedAttribute(ctx, "output_padding", output_padding)) {
+    if (output_padding.size() != n_input_dims) { // Added only to one side.
+      fail_shape_inference("Attribute output_padding has incorrect size.");
+    }
+  } else {
+    output_padding.assign(n_input_dims, 0);
+  }
+
   if (ctx.getNumInputs() == 3) {
     // If the third input, output_size, is specified, then use that instead 
     // of inferring shape from inputs.
@@ -374,7 +383,7 @@ void maxUnpoolShapeInference(InferenceContext& ctx) {
 
     int64_t newdim_value =
         strides[i] * (input_shape.dim(2 + i).dim_value() - 1);
-    newdim_value += kernel_shape[i];
+    newdim_value += (output_padding[i] + kernel_shape[i]);
     newdim_value -= pads[i];
     newdim_value -= pads[i + kernel_shape_size];
 
@@ -421,6 +430,12 @@ ONNX_OPERATOR_SET_SCHEMA(
         .Attr(
             "pads",
             pads_doc,
+            AttributeProto::INTS,
+            OPTIONAL)
+        .Attr(
+            "output_padding",
+            "The zero-padding added to one side of the output."
+            " This is also called adjs/adjustment in some frameworks.",
             AttributeProto::INTS,
             OPTIONAL)
         .Input(
