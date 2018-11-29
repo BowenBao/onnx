@@ -6480,9 +6480,10 @@ This version of the operator has been available since version 1 of the default O
   
   MaxUnpool can produce the same output size for several input sizes, which makes unpooling op ambiguous.
    The third input argument, output_size, is meant to disambiguate the op and produce output tensor of
-   known/predictable size.
+   known/predictable size. The second attribute, output_padding, is also meant to disambiguate the op, by adding
+   zero-padding to one side of the output.
   
-  In addition to the inputs, MaxUnpool takes three attributes, namely kernel_shape, strides, and pads,
+  In addition, MaxUnpool takes three other attributes, namely kernel_shape, strides, and pads,
    which define the exact unpooling op. The attributes typically have the same values as the corrsponding
    pooling op that the unpooling op is trying to invert.
 
