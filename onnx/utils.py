@@ -50,3 +50,43 @@ def update_inputs_outputs_dims(model, input_dims, output_dims):
 
     onnx.checker.check_model(model)
     return model
+
+def update_with_default_names(model):
+    """
+        This function updates the names of the model with the default of 'OpType_id'. This is useful for models
+        exported from PyTorch. Because in PyTorch ops don't have names and exported names are all unique number ids.
+    """
+    old_name_to_new_name = {}
+    old_name_to_input_of_node = {}
+    new_name_to_node = {}
+
+    def add_to_map(data_map, key, value):
+        if not key in data_map:
+            data_map[key] = []
+        data_map[key].append(value)
+
+    for node in model.graph.node:
+        node.name = node.op_type + '_' + node.output[0]
+        for i, input_name in enumerate(node.input):
+            if not input_name in new_name_to_node.keys():
+                if not input_name in old_name_to_new_name.keys():
+                    add_to_map(old_name_to_input_of_node, input_name, node)
+                else:
+                    node.input[i] = old_name_to_new_name[input_name]
+        for i, output_name in enumerate(node.output):
+            if output_name[:6] == 'output':
+                continue
+            if not output_name in new_name_to_node.keys():
+                new_output_name = node.op_type + '_' + output_name
+                add_to_map(new_name_to_node, new_output_name, node)
+                old_name_to_new_name[output_name] = new_output_name
+                node.output[i] = new_output_name
+
+    for old_name, input_of_node in old_name_to_input_of_node.items():
+        if old_name in old_name_to_new_name.keys():
+            for i, name in enumerate(input_of_node.input):
+                if old_name == name:
+                    input_of_node.input[i] = old_name_to_new_name[old_name]
+
+    onnx.checker.check_model(model)
+    return model
