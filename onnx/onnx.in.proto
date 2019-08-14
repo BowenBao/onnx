@@ -83,7 +83,10 @@ enum Version {
   // IR VERSION 5 published on March 18, 2019
   // - Add message TensorAnnotation.
   // - Add quantization annotation in GraphProto to map tensor with its scale and zero point quantization parameters.
-  IR_VERSION = 0x0000000000000005;
+  IR_VERSION_2019_3_19 = 0x0000000000000005;
+
+  // IR VERSION 6 published on 
+  IR_VERSION = 0x0000000000000006;
 }
 
 // Attributes
@@ -474,7 +477,6 @@ message TypeProto {
     optional TensorShapeProto shape = 2;
   }
 
-// #if ONNX-ML
 
   // repeated T
   message Sequence {
@@ -511,13 +513,10 @@ message TypeProto {
     optional TensorShapeProto shape = 2;
   }
 
-// #endif
 
   oneof value {
     // The type of a tensor.
     Tensor tensor_type = 1;
-
-// #if ONNX-ML
 
     // NOTE:  DNN-only implementations of ONNX MAY elect to not support non-tensor values
     //        as input and output to graphs and nodes. These types are needed to naturally
@@ -533,8 +532,6 @@ message TypeProto {
     Opaque opaque_type = 7;
 
     SparseTensor sparse_tensor_type = 8;
-
-// #endif
   }
 
   // An optional denotation can be used to denote the whole 
