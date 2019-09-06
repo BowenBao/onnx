@@ -197,6 +197,75 @@ inline void propagateElemTypeWithValidation(
   }
 }
 
+inline int32_t getElemType(const TypeProto& type) {
+  const auto typeCase = type.value_case();
+  if (typeCase == TypeProto::kTensorType) {
+    return type.tensor_type().elem_type();
+  } else if (typeCase == TypeProto::kSequenceType) {
+    return getElemType(type.sequence_type().elem_type());
+  } else {
+    fail_type_inference(
+      "getElemType: Unsupported type ", typeCase);
+  }
+}
+
+// NOTE: For advanced types, such as Sequence<Tensor>, or nested sequence Sequence<Sequence<...>>,
+// callers are responsible to provide the TypeProto::ValueCase as parameter, or make sure
+// the output type cases are setup correctly.
+inline void updateElemType(
+    TypeProto& type,
+    const int32_t elemType,
+    const TypeProto::ValueCase expectedTypeCase = TypeProto::kTensorType) {
+  const auto typeCase = type.value_case();
+  if ((TypeProto::VALUE_NOT_SET != typeCase) && (expectedTypeCase != typeCase)) {
+    fail_type_inference(
+      "updateElemType: Expected to have type ", expectedTypeCase, " but got ", typeCase);
+  }
+  if (expectedTypeCase == TypeProto::VALUE_NOT_SET ||
+      expectedTypeCase == TypeProto::kTensorType) {
+    type.mutable_tensor_type()->set_elem_type(elemType);
+  } else if (expectedTypeCase == TypeProto::kSequenceType) {
+    auto &sub_type = *type.mutable_sequence_type()->mutable_elem_type();
+    updateElemType(
+      sub_type,
+      elemType,
+      sub_type.value_case());
+  } else {
+    // This is not expected to happen
+    fail_type_inference(
+      "updateElemType: Unsupported type ", expectedTypeCase);
+  }
+}
+
+inline void updateOutputElemType(
+    InferenceContext& ctx,
+    size_t outputIndex,
+    int32_t elemType,
+    const TypeProto::ValueCase expectedTypeCase = TypeProto::VALUE_NOT_SET) {
+  auto output_type = ctx.getOutputType(outputIndex);
+  if (output_type != nullptr) {
+    updateElemType(*output_type, elemType, expectedTypeCase);
+  } else {
+    // This is not expected to happen
+    fail_type_inference(
+        "Output ", outputIndex, " unknown.");
+  }
+}
+
+inline void updateSequenceOutputElemType(
+    InferenceContext& ctx,
+    size_t outputIndex,
+    int32_t elemType) {
+  auto output_type = ctx.getOutputType(outputIndex);
+  if (output_type != nullptr) {
+    updateElemType(*output_type, elemType, TypeProto::kSequenceType);
+  } else {
+    // This is not expected to happen
+    fail_type_inference(
+        "Output ", outputIndex, " expected to have sequence type");
+  }
+}
+
 // Note: for all methods below for propagating type or shape, callers are
 // responsible to handle optional inputs/outputs and ensure that the specified
 // index value is less than NumInputs/NumOutputs.
@@ -204,42 +273,28 @@ inline void propagateElemTypeWithValidation(
 inline void propagateElemTypeFromInputToOutput(
     InferenceContext& ctx,
     size_t inputIndex,
-    size_t outputIndex) {
+    size_t outputIndex,
+    const TypeProto::ValueCase expectedTypeCase = TypeProto::kTensorType) {
   auto input_type = ctx.getInputType(inputIndex);
-  if (nullptr == input_type ||
-      input_type->value_case() != TypeProto::kTensorType) {
-    fail_type_inference("Input ", inputIndex, " expected to have tensor type");
+  if (nullptr == input_type) {
+    fail_type_inference("Input ", inputIndex, " is unknown.");
   }
-  if (input_type->tensor_type().elem_type() == TensorProto::UNDEFINED) {
+  const auto input_elem_type = getElemType(*input_type);
+  if (input_elem_type == TensorProto::UNDEFINED) {
     fail_type_inference("Element type of input ", inputIndex, " unknown");
   }
   auto output_type = ctx.getOutputType(outputIndex);
-  if (output_type->value_case() == TypeProto::kTensorType ||
-      output_type->value_case() == TypeProto::VALUE_NOT_SET) {
-    output_type->mutable_tensor_type()->set_elem_type(
-        input_type->tensor_type().elem_type());
-  } else {
-    // This is not expected to happen
-    fail_type_inference(
-        "Output ", outputIndex, " expected to have tensor type");
-  }
+  updateElemType(*output_type, input_elem_type, expectedTypeCase);
 }
 
 inline void propagateElemTypeFromDtypeToOutput(
     InferenceContext& ctx,
     const int& data_type,
-    size_t outputIndex) {
+    size_t outputIndex,
+    const TypeProto::ValueCase expectedTypeCase = TypeProto::kTensorType) {
   auto attribute_tensor_datatype = data_type;
   auto output_type = ctx.getOutputType(outputIndex);
-  if (output_type->value_case() == TypeProto::kTensorType ||
-      output_type->value_case() == TypeProto::VALUE_NOT_SET) {
-    output_type->mutable_tensor_type()->set_elem_type(
-        attribute_tensor_datatype);
-  } else {
-    // This is not expected to happen
-    fail_type_inference(
-        "Output ", outputIndex, " expected to have tensor type");
-  }
+  updateElemType(*output_type, attribute_tensor_datatype, expectedTypeCase);
 }
 
 inline void propagateElemTypeFromDtypeToOutput(
@@ -259,8 +314,12 @@ inline void propagateElemTypeFromDtypeToOutput(
 
 inline bool hasInputShape(InferenceContext& ctx, size_t n) {
   return ctx.getNumInputs() > static_cast<size_t>(n) && ctx.getInputType(n) &&
-      ctx.getInputType(n)->has_tensor_type() &&
-      ctx.getInputType(n)->tensor_type().has_shape();
+      ((ctx.getInputType(n)->has_tensor_type() &&
+        ctx.getInputType(n)->tensor_type().has_shape()) ||
+       (ctx.getInputType(n)->has_sequence_type() &&
+        ctx.getInputType(n)->sequence_type().has_elem_type() &&
+        ctx.getInputType(n)->sequence_type().elem_type().has_tensor_type() &&
+        ctx.getInputType(n)->sequence_type().elem_type().tensor_type().has_shape()));
 }
 
 inline bool hasNInputShapes(InferenceContext& ctx, size_t n) {
@@ -322,33 +381,26 @@ inline void propagateShapeAndTypeFromFirstInput(InferenceContext& ctx) {
   propagateShapeFromInputToOutput(ctx, 0, 0);
 }
 
-inline void updateOutputElemType(
-    InferenceContext& ctx,
-    size_t outputIndex,
-    int32_t elemType) {
-  auto output_type = ctx.getOutputType(outputIndex);
-  if ((output_type != nullptr) &&
-      (output_type->value_case() == TypeProto::kTensorType ||
-       output_type->value_case() == TypeProto::VALUE_NOT_SET)) {
-    output_type->mutable_tensor_type()->set_elem_type(elemType);
-  } else {
-    // This is not expected to happen
-    fail_type_inference(
-        "Output ", outputIndex, " expected to have tensor type");
-  }
-}
-
 // Infer type of an output from the value of a specified attribute, which is
 // expected to have a valid value representing a TensorProto_DataType.
+// For advanced types, such as Sequence<Tensor>, or nested sequence Sequence<Sequence<...>>,
+// callers are responsible to provide the TypeProto::ValueCase as parameter, or make sure
+// the output type cases are setup correctly.
 inline void propagateElemTypeFromAttributeToOutput(
     InferenceContext& ctx,
     const std::string& attributeName,
     size_t outputIndex,
-    TensorProto_DataType default_value = TensorProto::UNDEFINED) {
+    TensorProto_DataType default_value = TensorProto::UNDEFINED,
+    const TypeProto::ValueCase expectedTypeCase = TypeProto::kTensorType) {
+  auto output_type = ctx.getOutputType(outputIndex);
+  if (nullptr == output_type) {
+    fail_type_inference(
+      "Output ", outputIndex, " type is unknown.");
+  }
   auto attr_proto = ctx.getAttribute(attributeName);
   if (nullptr == attr_proto) { // attribute not present
     if (default_value != TensorProto::UNDEFINED) {
-      updateOutputElemType(ctx, outputIndex, default_value);
+      updateElemType(*output_type, default_value, expectedTypeCase);
       return;
     } else
       fail_type_inference(
@@ -366,7 +418,7 @@ inline void propagateElemTypeFromAttributeToOutput(
     fail_type_inference(
         "Attribute ", attributeName, " does not specify a valid type.");
   }
-  updateOutputElemType(ctx, outputIndex, elem_type);
+  updateElemType(*output_type, elem_type, expectedTypeCase);
 }
 
 inline TensorShapeProto* getOutputShape(InferenceContext& ctx, size_t n) {
