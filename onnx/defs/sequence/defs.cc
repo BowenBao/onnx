@@ -334,7 +334,7 @@ static const char* SplitToSequence_ver11_doc =
     R"DOC(Split a tensor into a sequence of tensors, along the specified
 'axis'. Lengths of the parts can be specified using argument 'split'.
 'split' must contain only positive numbers.
-'split' is either a scalar(tensor of empty shape), or a 1-D tensor.
+'split' is either a scalar (tensor of empty shape), or a 1-D tensor.
 If 'split' is a scalar, then 'input' will be split into equally sized chunks(if possible).
 Last chunk will be smaller if the 'input' size along the given axis 'axis' is not divisible
 by 'split'.
@@ -380,8 +380,8 @@ ONNX_OPERATOR_SET_SCHEMA(
             static_cast<int64_t>(0))
         .Attr(
             "keepdims",
-            "Keep the split dimension or not, default 1 mean keep split dimension. "
-            "If input 'split' is specified this attribute is ignored.",
+            "Keep the split dimension or not. Default 1, which means we keep split dimension. "
+            "If input 'split' is specified, this attribute is ignored.",
             AttributeProto::INT,
             static_cast<int64_t>(1))
         .SetDoc(SplitToSequence_ver11_doc)

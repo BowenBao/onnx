@@ -12766,7 +12766,7 @@ This version of the operator has been available since version 11 of the default 
   Split a tensor into a sequence of tensors, along the specified
   'axis'. Lengths of the parts can be specified using argument 'split'.
   'split' must contain only positive numbers.
-  'split' is either a scalar(tensor of empty shape), or a 1-D tensor.
+  'split' is either a scalar (tensor of empty shape), or a 1-D tensor.
   If 'split' is a scalar, then 'input' will be split into equally sized chunks(if possible).
   Last chunk will be smaller if the 'input' size along the given axis 'axis' is not divisible
   by 'split'.
@@ -12795,7 +12795,7 @@ This version of the operator has been available since version 11 of the default 
 <dt><tt>axis</tt> : int (default is 0)</dt>
 <dd>Which axis to split on. A negative value means counting dimensions from the back. Accepted range is [-rank, rank-1].</dd>
 <dt><tt>keepdims</tt> : int (default is 1)</dt>
-<dd>Keep the split dimension or not, default 1 mean keep split dimension. If input 'split' is specified this attribute is ignored.</dd>
+<dd>Keep the split dimension or not. Default 1, which means we keep split dimension. If input 'split' is specified, this attribute is ignored.</dd>
 </dl>
 
 #### Inputs (1 - 2)
