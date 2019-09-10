@@ -10452,7 +10452,6 @@ This version of the operator has been available since version 11 of the default 
 <dd>Constrain input and output types to float tensors.</dd>
 </dl>
 
-<<<<<<< HEAD
 ### <a name="Compress-11"></a>**Compress-11**</a>
 
   Selects slices from an input tensor along a given axis where condition evaluates to True for each axis index.
@@ -10499,14 +10498,6 @@ This version of the operator has been available since version 11 of the default 
 ### <a name="Concat-11"></a>**Concat-11**</a>
 
   Concatenate a list of tensors into a single tensor
-=======
-### <a name="ConcatFromSequence-11"></a>**ConcatFromSequence-11**</a>
-
-  Concatenate a sequence of tensors into a single tensor.
-  All input tensors must have the same rank.
-  By default 'new_axis' is 0, the behavior is similar to numpy.concatenate.
-  When 'new_axis' is 1, the behavior is similar to numpy.stack.
->>>>>>> Add Sequence related ops
 
 #### Version
 
@@ -10516,7 +10507,6 @@ This version of the operator has been available since version 11 of the default 
 
 <dl>
 <dt><tt>axis</tt> : int (required)</dt>
-<<<<<<< HEAD
 <dd>Which axis to concat on. A negative value means counting dimensions from the back. Accepted range is [-rank, rank-1].</dd>
 </dl>
 
@@ -10525,18 +10515,6 @@ This version of the operator has been available since version 11 of the default 
 <dl>
 <dt><tt>inputs</tt> (variadic) : T</dt>
 <dd>List of tensors for concatenation</dd>
-=======
-<dd>Which axis to concat on. Accepted range in `[-r, r - 1]`, where `r` is the rank of input tensors. When `new_axis` is 1, accepted range is `[-r - 1, r]`. </dd>
-<dt><tt>new_axis</tt> : int (default is 0)</dt>
-<dd>Insert and concatenate on a new axis or not, default 0 means do not insert new axis.</dd>
-</dl>
-
-#### Inputs
-
-<dl>
-<dt><tt>input_sequence</tt> : S</dt>
-<dd>Sequence of tensors for concatenation</dd>
->>>>>>> Add Sequence related ops
 </dl>
 
 #### Outputs
@@ -10549,11 +10527,49 @@ This version of the operator has been available since version 11 of the default 
 #### Type Constraints
 
 <dl>
-<<<<<<< HEAD
-=======
+<dt><tt>T</tt> : tensor(uint8), tensor(uint16), tensor(uint32), tensor(uint64), tensor(int8), tensor(int16), tensor(int32), tensor(int64), tensor(float16), tensor(float), tensor(double), tensor(string), tensor(bool), tensor(complex64), tensor(complex128)</dt>
+<dd>Constrain output types to any tensor type.</dd>
+</dl>
+
+### <a name="ConcatFromSequence-11"></a>**ConcatFromSequence-11**</a>
+
+  Concatenate a sequence of tensors into a single tensor.
+  All input tensors must have the same rank.
+  By default 'new_axis' is 0, the behavior is similar to numpy.concatenate.
+  When 'new_axis' is 1, the behavior is similar to numpy.stack.
+
+#### Version
+
+This version of the operator has been available since version 11 of the default ONNX operator set.
+
+#### Attributes
+
+<dl>
+<dt><tt>axis</tt> : int (required)</dt>
+<dd>Which axis to concat on. Accepted range in `[-r, r - 1]`, where `r` is the rank of input tensors. When `new_axis` is 1, accepted range is `[-r - 1, r]`. </dd>
+<dt><tt>new_axis</tt> : int (default is 0)</dt>
+<dd>Insert and concatenate on a new axis or not, default 0 means do not insert new axis.</dd>
+</dl>
+
+#### Inputs
+
+<dl>
+<dt><tt>input_sequence</tt> : S</dt>
+<dd>Sequence of tensors for concatenation</dd>
+</dl>
+
+#### Outputs
+
+<dl>
+<dt><tt>concat_result</tt> : T</dt>
+<dd>Concatenated tensor</dd>
+</dl>
+
+#### Type Constraints
+
+<dl>
 <dt><tt>S</tt> : seq(tensor(uint8)), seq(tensor(uint16)), seq(tensor(uint32)), seq(tensor(uint64)), seq(tensor(int8)), seq(tensor(int16)), seq(tensor(int32)), seq(tensor(int64)), seq(tensor(float16)), seq(tensor(float)), seq(tensor(double)), seq(tensor(string)), seq(tensor(bool)), seq(tensor(complex64)), seq(tensor(complex128))</dt>
 <dd>Constrain input types to any tensor type.</dd>
->>>>>>> Add Sequence related ops
 <dt><tt>T</tt> : tensor(uint8), tensor(uint16), tensor(uint32), tensor(uint64), tensor(int8), tensor(int16), tensor(int32), tensor(int64), tensor(float16), tensor(float), tensor(double), tensor(string), tensor(bool), tensor(complex64), tensor(complex128)</dt>
 <dd>Constrain output types to any tensor type.</dd>
 </dl>
@@ -12403,70 +12419,16 @@ This version of the operator has been available since version 11 of the default 
 <dd>Constrain input and output types to any tensor type.</dd>
 </dl>
 
-<<<<<<< HEAD
-### <a name="Slice-11"></a>**Slice-11**</a>
-
-  Produces a slice of the input tensor along multiple axes. Similar to numpy:
-  https://docs.scipy.org/doc/numpy/reference/arrays.indexing.html
-  Slices uses `starts`, `ends`, `axes` and `steps` inputs to specify the start and end
-  dimension and step for each axis in the list of axes, it uses this information to
-  slice the input `data` tensor. If a negative value is passed for any of the
-  start or end indices, it represent number of elements before the end of that
-  dimension. If the value passed to start or end is larger than the `n` (the
-  number of elements in this dimension), it represents `n`. For slicing to the
-  end of a dimension with unknown size, it is recommended to pass in `INT_MAX`.
-  If a negative value is passed for step, it represents slicing backward.
-  If `axes` are omitted, they are set to `[0, ..., ndim-1]`.
-  If `steps` are omitted, they are set to `[1, ..., 1]` of length `len(starts)`
-  Example 1:
-    data = [
-        [1, 2, 3, 4],
-        [5, 6, 7, 8],
-    ]
-    axes = [0, 1]
-    starts = [1, 0]
-    ends = [2, 3]
-    steps = [1, 2]
-    result = [
-        [5, 7],
-    ]
-  Example 2:
-    data = [
-        [1, 2, 3, 4],
-        [5, 6, 7, 8],
-    ]
-    starts = [0, 1]
-    ends = [-1, 1000]
-    result = [
-        [2, 3, 4],
-    ]
-=======
 ### <a name="SequenceAt-11"></a>**SequenceAt-11**</a>
 
   Outputs a tensor copy from the tensor at 'position' in 'input_sequence'.
   Accepted range for 'position' is in `[-n, n - 1]`, where `n` is the number of tensors in 'input_sequence'.
   Negative value means counting positions from the back.
->>>>>>> Add Sequence related ops
 
 #### Version
 
 This version of the operator has been available since version 11 of the default ONNX operator set.
 
-<<<<<<< HEAD
-#### Inputs (3 - 5)
-
-<dl>
-<dt><tt>data</tt> : T</dt>
-<dd>Tensor of data to extract slices from.</dd>
-<dt><tt>starts</tt> : Tind</dt>
-<dd>1-D tensor of starting indices of corresponding axis in `axes`</dd>
-<dt><tt>ends</tt> : Tind</dt>
-<dd>1-D tensor of ending indices (exclusive) of corresponding axis in `axes`</dd>
-<dt><tt>axes</tt> (optional) : Tind</dt>
-<dd>1-D tensor of axes that `starts` and `ends` apply to. Negative value means counting dimensions from the back. Accepted range is [-r, r-1] where r = rank(input).</dd>
-<dt><tt>steps</tt> (optional) : Tind</dt>
-<dd>1-D tensor of slice step of corresponding axis in `axes`. Default to 1. </dd>
-=======
 #### Inputs
 
 <dl>
@@ -12474,49 +12436,18 @@ This version of the operator has been available since version 11 of the default 
 <dd>Input sequence.</dd>
 <dt><tt>position</tt> : I</dt>
 <dd>Position of the tensor in the array. Negative value means counting positions from the back. Accepted range in `[-n, n - 1]`, where `n` is the number of tensors in 'input_sequence'. It is an error if any of the index values are out of bounds. It must be a scalar(tensor of empty shape).</dd>
->>>>>>> Add Sequence related ops
 </dl>
 
 #### Outputs
 
 <dl>
-<<<<<<< HEAD
-<dt><tt>output</tt> : T</dt>
-<dd>Sliced data tensor.</dd>
-=======
 <dt><tt>tensor</tt> : T</dt>
 <dd>Output tensor at the specified position in the input sequence.</dd>
->>>>>>> Add Sequence related ops
 </dl>
 
 #### Type Constraints
 
 <dl>
-<<<<<<< HEAD
-<dt><tt>T</tt> : tensor(uint8), tensor(uint16), tensor(uint32), tensor(uint64), tensor(int8), tensor(int16), tensor(int32), tensor(int64), tensor(float16), tensor(float), tensor(double), tensor(string), tensor(bool), tensor(complex64), tensor(complex128)</dt>
-<dd>Constrain input and output types to all tensor types.</dd>
-<dt><tt>Tind</tt> : tensor(int32), tensor(int64)</dt>
-<dd>Constrain indices to integer types</dd>
-</dl>
-
-### <a name="Softmax-11"></a>**Softmax-11**</a>
-
-  The operator computes the softmax (normalized exponential) values for each layer in the batch
-   of the given input. The input is a 2-D tensor (Tensor<float>) of size
-  (batch_size x input_feature_dimensions). The output tensor has the same shape
-  and contains the softmax values of the corresponding input.
-  
-  Input does not need to explicitly be a 2D vector; rather, it will be
-  coerced into one. For an arbitrary n-dimensional tensor
-  input \in [a_0, a_1, ..., a_{k-1}, a_k, ..., a_{n-1}] and k is
-  the axis provided, then input will be coerced into a 2-dimensional tensor with
-  dimensions [a_0 * ... * a_{k-1}, a_k * ... * a_{n-1}]. For the default
-  case where axis=1, this means the input tensor will be coerced into a 2D tensor
-  of dimensions [a_0, a_1 * ... * a_{n-1}], where a_0 is often the batch size.
-  In this situation, we must have a_0 = N and a_1 * ... * a_{n-1} = D.
-  Each of these dimensions must be matched correctly, or else the operator
-  will throw errors.
-=======
 <dt><tt>S</tt> : seq(tensor(uint8)), seq(tensor(uint16)), seq(tensor(uint32)), seq(tensor(uint64)), seq(tensor(int8)), seq(tensor(int16)), seq(tensor(int32)), seq(tensor(int64)), seq(tensor(float16)), seq(tensor(float)), seq(tensor(double)), seq(tensor(string)), seq(tensor(bool)), seq(tensor(complex64)), seq(tensor(complex128))</dt>
 <dd>Constrain to any tensor type.</dd>
 <dt><tt>T</tt> : tensor(uint8), tensor(uint16), tensor(uint32), tensor(uint64), tensor(int8), tensor(int16), tensor(int32), tensor(int64), tensor(float16), tensor(float), tensor(double), tensor(string), tensor(bool), tensor(complex64), tensor(complex128)</dt>
@@ -12560,7 +12491,6 @@ This version of the operator has been available since version 11 of the default 
 ### <a name="SequenceEmpty-11"></a>**SequenceEmpty-11**</a>
 
   Construct an empty tensor sequence, with given data type.
->>>>>>> Add Sequence related ops
 
 #### Version
 
@@ -12569,22 +12499,12 @@ This version of the operator has been available since version 11 of the default 
 #### Attributes
 
 <dl>
-<<<<<<< HEAD
-<dt><tt>axis</tt> : int (default is 1)</dt>
-<dd>Describes the axis of the inputs when coerced to 2D; defaults to one because the 0th axis most likely describes the batch_size. Negative value means counting dimensions from the back. Accepted range in [-r, r-1] where r = rank(input).</dd>
-=======
 <dt><tt>dtype</tt> : int</dt>
 <dd>(Optional) The data type of the tensors in the output sequence. The default type is 'float'.</dd>
->>>>>>> Add Sequence related ops
 </dl>
 
 #### Inputs
 
-<<<<<<< HEAD
-<dl>
-<dt><tt>input</tt> : T</dt>
-<dd>The input tensor that's coerced into a 2D matrix of size (NxD) as described above.</dd>
-=======
 
 #### Outputs
 
@@ -12618,35 +12538,18 @@ This version of the operator has been available since version 11 of the default 
 <dd>Input sequence.</dd>
 <dt><tt>position</tt> (optional) : I</dt>
 <dd>Position of the tensor in the array. Negative value means counting positions from the back. Accepted range in `[-n, n - 1]`, where `n` is the number of tensors in 'input_sequence'. It is an error if any of the index values are out of bounds. It must be a scalar(tensor of empty shape).</dd>
->>>>>>> Add Sequence related ops
 </dl>
 
 #### Outputs
 
 <dl>
-<<<<<<< HEAD
-<dt><tt>output</tt> : T</dt>
-<dd>The output values with the same shape as input tensor (the original size without coercion).</dd>
-=======
 <dt><tt>output_sequence</tt> : S</dt>
 <dd>Output sequence that has the tensor at the specified position removed.</dd>
->>>>>>> Add Sequence related ops
 </dl>
 
 #### Type Constraints
 
 <dl>
-<<<<<<< HEAD
-<dt><tt>T</tt> : tensor(float16), tensor(float), tensor(double)</dt>
-<dd>Constrain input and output types to float tensors.</dd>
-</dl>
-
-### <a name="Split-11"></a>**Split-11**</a>
-
-  Split a tensor into a list of tensors, along the specified
-  'axis'. Lengths of the parts can be specified using argument 'split'.
-  Otherwise, the tensor is split to equal sized parts.
-=======
 <dt><tt>S</tt> : seq(tensor(uint8)), seq(tensor(uint16)), seq(tensor(uint32)), seq(tensor(uint64)), seq(tensor(int8)), seq(tensor(int16)), seq(tensor(int32)), seq(tensor(int64)), seq(tensor(float16)), seq(tensor(float)), seq(tensor(double)), seq(tensor(string)), seq(tensor(bool)), seq(tensor(complex64)), seq(tensor(complex128))</dt>
 <dd>Constrain to any tensor type.</dd>
 <dt><tt>I</tt> : tensor(int32), tensor(int64)</dt>
@@ -12660,35 +12563,11 @@ This version of the operator has been available since version 11 of the default 
   Accepted range for 'position' is in `[-n, n]`, where `n` is the number of tensors in 'input_sequence'.
   Negative value means counting positions from the back.
   'position' is optional, by default it inserts 'tensor' to the back of 'input_sequence'.
->>>>>>> Add Sequence related ops
 
 #### Version
 
 This version of the operator has been available since version 11 of the default ONNX operator set.
 
-<<<<<<< HEAD
-#### Attributes
-
-<dl>
-<dt><tt>axis</tt> : int (default is 0)</dt>
-<dd>Which axis to split on. A negative value means counting dimensions from the back. Accepted range is [-rank, rank-1].</dd>
-<dt><tt>split</tt> : list of ints</dt>
-<dd>length of each output</dd>
-</dl>
-
-#### Inputs
-
-<dl>
-<dt><tt>input</tt> : T</dt>
-<dd>The tensor to split</dd>
-</dl>
-
-#### Outputs (1 - &#8734;)
-
-<dl>
-<dt><tt>outputs</tt> (variadic) : T</dt>
-<dd>One or more outputs forming list of tensors after splitting</dd>
-=======
 #### Inputs (2 - 3)
 
 <dl>
@@ -12738,28 +12617,177 @@ This version of the operator has been available since version 11 of the default 
 <dl>
 <dt><tt>length</tt> : I</dt>
 <dd>Length of input sequence. It must be a scalar(tensor of empty shape).</dd>
->>>>>>> Add Sequence related ops
 </dl>
 
 #### Type Constraints
 
 <dl>
-<<<<<<< HEAD
-<dt><tt>T</tt> : tensor(uint8), tensor(uint16), tensor(uint32), tensor(uint64), tensor(int8), tensor(int16), tensor(int32), tensor(int64), tensor(float16), tensor(float), tensor(double), tensor(string), tensor(bool), tensor(complex64), tensor(complex128)</dt>
-<dd>Constrain input and output types to all tensor types.</dd>
-</dl>
-
-### <a name="Squeeze-11"></a>**Squeeze-11**</a>
-
-  Remove single-dimensional entries from the shape of a tensor.
-  Takes a  parameter `axes` with a list of axes to squeeze.
-  If `axes` is not provided, all the single dimensions will be removed from
-  the shape. If an axis is selected with shape entry not equal to one, an error is raised.
-=======
 <dt><tt>S</tt> : seq(tensor(uint8)), seq(tensor(uint16)), seq(tensor(uint32)), seq(tensor(uint64)), seq(tensor(int8)), seq(tensor(int16)), seq(tensor(int32)), seq(tensor(int64)), seq(tensor(float16)), seq(tensor(float)), seq(tensor(double)), seq(tensor(string)), seq(tensor(bool)), seq(tensor(complex64)), seq(tensor(complex128))</dt>
 <dd>Constrain to any tensor type.</dd>
 <dt><tt>I</tt> : tensor(int64)</dt>
 <dd>Constrain output to integral tensor. It must be a scalar(tensor of empty shape).</dd>
+</dl>
+
+### <a name="Slice-11"></a>**Slice-11**</a>
+
+  Produces a slice of the input tensor along multiple axes. Similar to numpy:
+  https://docs.scipy.org/doc/numpy/reference/arrays.indexing.html
+  Slices uses `starts`, `ends`, `axes` and `steps` inputs to specify the start and end
+  dimension and step for each axis in the list of axes, it uses this information to
+  slice the input `data` tensor. If a negative value is passed for any of the
+  start or end indices, it represent number of elements before the end of that
+  dimension. If the value passed to start or end is larger than the `n` (the
+  number of elements in this dimension), it represents `n`. For slicing to the
+  end of a dimension with unknown size, it is recommended to pass in `INT_MAX`.
+  If a negative value is passed for step, it represents slicing backward.
+  If `axes` are omitted, they are set to `[0, ..., ndim-1]`.
+  If `steps` are omitted, they are set to `[1, ..., 1]` of length `len(starts)`
+  Example 1:
+    data = [
+        [1, 2, 3, 4],
+        [5, 6, 7, 8],
+    ]
+    axes = [0, 1]
+    starts = [1, 0]
+    ends = [2, 3]
+    steps = [1, 2]
+    result = [
+        [5, 7],
+    ]
+  Example 2:
+    data = [
+        [1, 2, 3, 4],
+        [5, 6, 7, 8],
+    ]
+    starts = [0, 1]
+    ends = [-1, 1000]
+    result = [
+        [2, 3, 4],
+    ]
+
+#### Version
+
+This version of the operator has been available since version 11 of the default ONNX operator set.
+
+#### Inputs (3 - 5)
+
+<dl>
+<dt><tt>data</tt> : T</dt>
+<dd>Tensor of data to extract slices from.</dd>
+<dt><tt>starts</tt> : Tind</dt>
+<dd>1-D tensor of starting indices of corresponding axis in `axes`</dd>
+<dt><tt>ends</tt> : Tind</dt>
+<dd>1-D tensor of ending indices (exclusive) of corresponding axis in `axes`</dd>
+<dt><tt>axes</tt> (optional) : Tind</dt>
+<dd>1-D tensor of axes that `starts` and `ends` apply to. Negative value means counting dimensions from the back. Accepted range is [-r, r-1] where r = rank(input).</dd>
+<dt><tt>steps</tt> (optional) : Tind</dt>
+<dd>1-D tensor of slice step of corresponding axis in `axes`. Default to 1. </dd>
+</dl>
+
+#### Outputs
+
+<dl>
+<dt><tt>output</tt> : T</dt>
+<dd>Sliced data tensor.</dd>
+</dl>
+
+#### Type Constraints
+
+<dl>
+<dt><tt>T</tt> : tensor(uint8), tensor(uint16), tensor(uint32), tensor(uint64), tensor(int8), tensor(int16), tensor(int32), tensor(int64), tensor(float16), tensor(float), tensor(double), tensor(string), tensor(bool), tensor(complex64), tensor(complex128)</dt>
+<dd>Constrain input and output types to all tensor types.</dd>
+<dt><tt>Tind</tt> : tensor(int32), tensor(int64)</dt>
+<dd>Constrain indices to integer types</dd>
+</dl>
+
+### <a name="Softmax-11"></a>**Softmax-11**</a>
+
+  The operator computes the softmax (normalized exponential) values for each layer in the batch
+   of the given input. The input is a 2-D tensor (Tensor<float>) of size
+  (batch_size x input_feature_dimensions). The output tensor has the same shape
+  and contains the softmax values of the corresponding input.
+  
+  Input does not need to explicitly be a 2D vector; rather, it will be
+  coerced into one. For an arbitrary n-dimensional tensor
+  input \in [a_0, a_1, ..., a_{k-1}, a_k, ..., a_{n-1}] and k is
+  the axis provided, then input will be coerced into a 2-dimensional tensor with
+  dimensions [a_0 * ... * a_{k-1}, a_k * ... * a_{n-1}]. For the default
+  case where axis=1, this means the input tensor will be coerced into a 2D tensor
+  of dimensions [a_0, a_1 * ... * a_{n-1}], where a_0 is often the batch size.
+  In this situation, we must have a_0 = N and a_1 * ... * a_{n-1} = D.
+  Each of these dimensions must be matched correctly, or else the operator
+  will throw errors.
+
+#### Version
+
+This version of the operator has been available since version 11 of the default ONNX operator set.
+
+#### Attributes
+
+<dl>
+<dt><tt>axis</tt> : int (default is 1)</dt>
+<dd>Describes the axis of the inputs when coerced to 2D; defaults to one because the 0th axis most likely describes the batch_size. Negative value means counting dimensions from the back. Accepted range in [-r, r-1] where r = rank(input).</dd>
+</dl>
+
+#### Inputs
+
+<dl>
+<dt><tt>input</tt> : T</dt>
+<dd>The input tensor that's coerced into a 2D matrix of size (NxD) as described above.</dd>
+</dl>
+
+#### Outputs
+
+<dl>
+<dt><tt>output</tt> : T</dt>
+<dd>The output values with the same shape as input tensor (the original size without coercion).</dd>
+</dl>
+
+#### Type Constraints
+
+<dl>
+<dt><tt>T</tt> : tensor(float16), tensor(float), tensor(double)</dt>
+<dd>Constrain input and output types to float tensors.</dd>
+</dl>
+
+### <a name="Split-11"></a>**Split-11**</a>
+
+  Split a tensor into a list of tensors, along the specified
+  'axis'. Lengths of the parts can be specified using argument 'split'.
+  Otherwise, the tensor is split to equal sized parts.
+
+#### Version
+
+This version of the operator has been available since version 11 of the default ONNX operator set.
+
+#### Attributes
+
+<dl>
+<dt><tt>axis</tt> : int (default is 0)</dt>
+<dd>Which axis to split on. A negative value means counting dimensions from the back. Accepted range is [-rank, rank-1].</dd>
+<dt><tt>split</tt> : list of ints</dt>
+<dd>length of each output</dd>
+</dl>
+
+#### Inputs
+
+<dl>
+<dt><tt>input</tt> : T</dt>
+<dd>The tensor to split</dd>
+</dl>
+
+#### Outputs (1 - &#8734;)
+
+<dl>
+<dt><tt>outputs</tt> (variadic) : T</dt>
+<dd>One or more outputs forming list of tensors after splitting</dd>
+</dl>
+
+#### Type Constraints
+
+<dl>
+<dt><tt>T</tt> : tensor(uint8), tensor(uint16), tensor(uint32), tensor(uint64), tensor(int8), tensor(int16), tensor(int32), tensor(int64), tensor(float16), tensor(float), tensor(double), tensor(string), tensor(bool), tensor(complex64), tensor(complex128)</dt>
+<dd>Constrain input and output types to all tensor types.</dd>
 </dl>
 
 ### <a name="SplitToSequence-11"></a>**SplitToSequence-11**</a>
@@ -12773,7 +12801,6 @@ This version of the operator has been available since version 11 of the default 
   by 'split'.
   Otherwise, the tensor is split into 'size(split)' chunks, with lengths of the parts on 'axis'
   specified in 'split'.
->>>>>>> Add Sequence related ops
 
 #### Version
 
@@ -12782,17 +12809,6 @@ This version of the operator has been available since version 11 of the default 
 #### Attributes
 
 <dl>
-<<<<<<< HEAD
-<dt><tt>axes</tt> : list of ints</dt>
-<dd>List of integers indicating the dimensions to squeeze. Negative value means counting dimensions from the back. Accepted range is [-r, r-1] where r = rank(input).</dd>
-</dl>
-
-#### Inputs
-
-<dl>
-<dt><tt>data</tt> : T</dt>
-<dd>Tensors with at least max(dims) dimensions.</dd>
-=======
 <dt><tt>axis</tt> : int (default is 0)</dt>
 <dd>Which axis to split on. A negative value means counting dimensions from the back. Accepted range is [-rank, rank-1].</dd>
 <dt><tt>keepdims</tt> : int (default is 1)</dt>
@@ -12806,34 +12822,63 @@ This version of the operator has been available since version 11 of the default 
 <dd>The tensor to split</dd>
 <dt><tt>split</tt> (optional) : I</dt>
 <dd>Length of each output. It can be either a scalar(tensor of empty shape), or a 1-D tensor. All values must be positive. </dd>
->>>>>>> Add Sequence related ops
 </dl>
 
 #### Outputs
 
 <dl>
-<<<<<<< HEAD
-<dt><tt>squeezed</tt> : T</dt>
-<dd>Reshaped tensor with same data as input.</dd>
-=======
 <dt><tt>output_sequence</tt> : S</dt>
 <dd>One or more outputs forming a sequence of tensors after splitting</dd>
->>>>>>> Add Sequence related ops
 </dl>
 
 #### Type Constraints
 
 <dl>
 <dt><tt>T</tt> : tensor(uint8), tensor(uint16), tensor(uint32), tensor(uint64), tensor(int8), tensor(int16), tensor(int32), tensor(int64), tensor(float16), tensor(float), tensor(double), tensor(string), tensor(bool), tensor(complex64), tensor(complex128)</dt>
-<<<<<<< HEAD
-<dd>Constrain input and output types to all tensor types.</dd>
-=======
 <dd>Constrain input types to all tensor types.</dd>
 <dt><tt>I</tt> : tensor(int32), tensor(int64)</dt>
 <dd>Constrain split size to integral tensor.</dd>
 <dt><tt>S</tt> : seq(tensor(uint8)), seq(tensor(uint16)), seq(tensor(uint32)), seq(tensor(uint64)), seq(tensor(int8)), seq(tensor(int16)), seq(tensor(int32)), seq(tensor(int64)), seq(tensor(float16)), seq(tensor(float)), seq(tensor(double)), seq(tensor(string)), seq(tensor(bool)), seq(tensor(complex64)), seq(tensor(complex128))</dt>
 <dd>Constrain output types to all tensor types.</dd>
->>>>>>> Add Sequence related ops
+</dl>
+
+### <a name="Squeeze-11"></a>**Squeeze-11**</a>
+
+  Remove single-dimensional entries from the shape of a tensor.
+  Takes a  parameter `axes` with a list of axes to squeeze.
+  If `axes` is not provided, all the single dimensions will be removed from
+  the shape. If an axis is selected with shape entry not equal to one, an error is raised.
+
+#### Version
+
+This version of the operator has been available since version 11 of the default ONNX operator set.
+
+#### Attributes
+
+<dl>
+<dt><tt>axes</tt> : list of ints</dt>
+<dd>List of integers indicating the dimensions to squeeze. Negative value means counting dimensions from the back. Accepted range is [-r, r-1] where r = rank(input).</dd>
+</dl>
+
+#### Inputs
+
+<dl>
+<dt><tt>data</tt> : T</dt>
+<dd>Tensors with at least max(dims) dimensions.</dd>
+</dl>
+
+#### Outputs
+
+<dl>
+<dt><tt>squeezed</tt> : T</dt>
+<dd>Reshaped tensor with same data as input.</dd>
+</dl>
+
+#### Type Constraints
+
+<dl>
+<dt><tt>T</tt> : tensor(uint8), tensor(uint16), tensor(uint32), tensor(uint64), tensor(int8), tensor(int16), tensor(int32), tensor(int64), tensor(float16), tensor(float), tensor(double), tensor(string), tensor(bool), tensor(complex64), tensor(complex128)</dt>
+<dd>Constrain input and output types to all tensor types.</dd>
 </dl>
 
 ### <a name="TopK-11"></a>**TopK-11**</a>
