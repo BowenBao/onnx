@@ -12605,17 +12605,18 @@ This version of the operator has been available since version 11 of the default 
   Outputs a tensor sequence that removes the tensor at 'position' from 'input_sequence'.
   Accepted range for 'position' is in `[-n, n - 1]`, where `n` is the number of tensors in 'input_sequence'.
   Negative value means counting positions from the back.
+  'position' is optional, by default it erases the last tensor from 'input_sequence'.
 
 #### Version
 
 This version of the operator has been available since version 11 of the default ONNX operator set.
 
-#### Inputs
+#### Inputs (1 - 2)
 
 <dl>
 <dt><tt>input_sequence</tt> : S</dt>
 <dd>Input sequence.</dd>
-<dt><tt>position</tt> : I</dt>
+<dt><tt>position</tt> (optional) : I</dt>
 <dd>Position of the tensor in the array. Negative value means counting positions from the back. Accepted range in `[-n, n - 1]`, where `n` is the number of tensors in 'input_sequence'. It is an error if any of the index values are out of bounds. It must be a scalar(tensor of empty shape).</dd>
 >>>>>>> Add Sequence related ops
 </dl>

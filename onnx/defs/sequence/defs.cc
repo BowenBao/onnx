@@ -256,6 +256,7 @@ static const char* SequenceErase_ver11_doc = R"DOC(
 Outputs a tensor sequence that removes the tensor at 'position' from 'input_sequence'.
 Accepted range for 'position' is in `[-n, n - 1]`, where `n` is the number of tensors in 'input_sequence'.
 Negative value means counting positions from the back.
+'position' is optional, by default it erases the last tensor from 'input_sequence'.
 )DOC";
 
 ONNX_OPERATOR_SET_SCHEMA(
@@ -277,7 +278,8 @@ ONNX_OPERATOR_SET_SCHEMA(
             "where `n` is the number of tensors in 'input_sequence'. "
             "It is an error if any of the index values are out of bounds. "
             "It must be a scalar(tensor of empty shape).",
-            "I")
+            "I",
+            OpSchema::Optional)
         .Output(
             0,
             "output_sequence",

@@ -24,6 +24,8 @@ class Sequence(Base):
                 output_shapes,  # type: List[Optional[typing.Sequence[Union[Text, int]]]]
                 input_names,  # type: List[Text]
                 output_names,  # type: List[Text]
+                input_types,  # type: List[TensorProto.DataType]
+                output_types,  # type: List[TensorProto.DataType]
                 initializers=None  # type: Optional[List[TensorProto]]
         ):  # type: (...) -> onnx.helper.GraphProto
             graph = onnx.helper.make_graph(
@@ -32,15 +34,15 @@ class Sequence(Base):
                 inputs=[
                     onnx.helper.make_tensor_value_info(
                         name,
-                        onnx.TensorProto.FLOAT,
+                        input_type,
                         input_shape)
-                    for name, input_shape in zip(input_names, input_shapes)],
+                    for name, input_type, input_shape in zip(input_names, input_types, input_shapes)],
                 outputs=[
                     onnx.helper.make_tensor_value_info(
                         name,
-                        onnx.TensorProto.FLOAT,
+                        output_type,
                         output_shape)
-                    for name, output_shape in zip(output_names, output_shapes)],
+                    for name, output_type, output_shape in zip(output_names, output_types, output_shapes)],
                 initializer=initializers)
             return graph
 
@@ -74,6 +76,8 @@ class Sequence(Base):
             [out_shape],  # type: ignore
             ['X', 'Y', 'Z', 'pos', 'pos_at'],
             ['out'],
+            [onnx.TensorProto.FLOAT] * 3 + [onnx.TensorProto.INT64] * 2,  # type: ignore
+            [onnx.TensorProto.FLOAT],
             [pos, pos_at])
         model = onnx.helper.make_model(graph, producer_name='backend-test')
         expect(model, inputs=[x, y, z], outputs=[y], name="test_sequence_model1")
@@ -101,6 +105,8 @@ class Sequence(Base):
             [tensor_shape],  # type: ignore
             ['X', 'Y', 'Z', 'pos_erase', 'pos_at'],
             ['out'],
+            [onnx.TensorProto.FLOAT] * 3 + [onnx.TensorProto.INT64] * 2,  # type: ignore
+            [onnx.TensorProto.FLOAT],
             [pos_erase, pos_at])
         model = onnx.helper.make_model(graph, producer_name='backend-test')
         expect(model, inputs=[x, y, z], outputs=[z], name="test_sequence_model2")
@@ -131,6 +137,8 @@ class Sequence(Base):
             [tensor_shape],  # type: ignore
             ['X', 'Y', 'Z', 'pos_erase', 'pos_insert', 'pos_at'],
             ['out'],
+            [onnx.TensorProto.FLOAT] * 3 + [onnx.TensorProto.INT64] * 3,  # type: ignore
+            [onnx.TensorProto.FLOAT],
             [pos_erase, pos_insert, pos_at])
         model = onnx.helper.make_model(graph, producer_name='backend-test')
         expect(model, inputs=[x, y, z], outputs=[z], name="test_sequence_model3")
@@ -152,7 +160,9 @@ class Sequence(Base):
             [tensor_shape] * 3,  # type: ignore
             [concat_out_shape],  # type: ignore
             ['X', 'Y', 'Z'],
-            ['out'])
+            ['out'],
+            [onnx.TensorProto.FLOAT] * 3,  # type: ignore
+            [onnx.TensorProto.FLOAT])
         model = onnx.helper.make_model(graph, producer_name='backend-test')
         expect(model, inputs=[x, y, z], outputs=[concat_out], name="test_sequence_model4")
 
@@ -173,7 +183,9 @@ class Sequence(Base):
             [tensor_shape] * 3,  # type: ignore
             [concat_out_shape],  # type: ignore
             ['X', 'Y', 'Z'],
-            ['out'])
+            ['out'],
+            [onnx.TensorProto.FLOAT] * 3,  # type: ignore
+            [onnx.TensorProto.FLOAT],)
         model = onnx.helper.make_model(graph, producer_name='backend-test')
         expect(model, inputs=[x, y, z], outputs=[concat_out], name="test_sequence_model5")
 
@@ -221,6 +233,8 @@ class Sequence(Base):
             [out_shape],  # type: ignore
             ['X', 'pos_at'],
             ['out'],
+            [onnx.TensorProto.DOUBLE, onnx.TensorProto.INT64],
+            [onnx.TensorProto.DOUBLE],
             [pos_at])
         model = onnx.helper.make_model(graph, producer_name='backend-test')
         expect(model, inputs=[x], outputs=[out], name="test_sequence_model7")
